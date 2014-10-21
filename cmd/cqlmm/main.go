@@ -24,6 +24,10 @@ func main() {
 
 	// Take the first, remaining argument as the subcommand to invoke.
 	switch cmd := flag.Arg(0); cmd {
+	case "up":
+	case "down":
+	case "create":
+	case "init":
 	case "":
 		// Print usage message
 		usage()
@@ -50,7 +54,7 @@ func usage() {
 	log.Println("\nFlags:")
 	opts := map[string]string{
 		"-k=KEYSPACE": "Change the keyspace the migrations are applied to (overrides config)",
-		"-c=CONFIG": "Path to the configuration file"
+		"-c=CONFIG":   "Path to the configuration file",
 	}
 	for opt, desc := range opts {
 		log.Printf("\t%s\n\t\t%s", opt, desc)
