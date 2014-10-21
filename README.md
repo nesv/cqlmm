@@ -1,0 +1,4 @@
+cqlmm
+=====
+
+CQL Migrations Manager
