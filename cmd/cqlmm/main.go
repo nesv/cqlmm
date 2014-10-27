@@ -25,7 +25,7 @@ func main() {
 	// We want to catch the "init" subcommand early on.
 	switch cmd := flag.Arg(0); cmd {
 	case "init":
-		if err := InitializeMigrationDir(configPath); err != nil {
+		if err := cqlmm.InitializeMigrationDir(configPath); err != nil {
 			log.Fatalln(err)
 		}
 		return
