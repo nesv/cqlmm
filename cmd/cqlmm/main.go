@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"github.com/nesv/cqlmm"
 	"github.com/nesv/cqlmm/config"
 )
 
@@ -24,11 +25,9 @@ func main() {
 	// We want to catch the "init" subcommand early on.
 	switch cmd := flag.Arg(0); cmd {
 	case "init":
-		fmt.Println("--- Initializing migration environment")
 		if err := InitializeMigrationDir(configPath); err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println("done")
 		return
 	}
 
@@ -48,7 +47,23 @@ func main() {
 	case "down":
 		fmt.Println("--- Downgrading keyspace", *keyspace)
 	case "create":
-		fmt.Println("--- Creating new migration")
+		name := flag.Arg(1)
+		if name == "" {
+			log.Fatalln("no migration name specified")
+		}
+
+		switch mtyp := flag.Arg(2); mtyp {
+		case "cql":
+			pth, err := cqlmm.CreateCQLMigration(*migrationDir, name)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			fmt.Println(pth)
+
+		case "":
+			log.Fatalf("unknown migration type %q", mtyp)
+		}
+
 	case "":
 		// Print usage message
 		usage()
