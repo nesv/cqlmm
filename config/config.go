@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Load(pth string) (*Config, err) {
+func Load(pth string) (*Config, error) {
 	f, err := os.Open(pth)
 	if err != nil {
 		return nil, err
@@ -13,7 +13,7 @@ func Load(pth string) (*Config, err) {
 
 	var c Config
 
-	dec := json.NewDecoder(r)
+	dec := json.NewDecoder(f)
 	err = dec.Decode(&c)
 
 	return &c, err
