@@ -1,6 +1,6 @@
 all: cqlmm
 
-cqlmm: $(shell find cmd/cqlmm config -type f -iname "*.go")
+cqlmm: $(shell find . -type f -iname "*.go")
 	go build -o $@ github.com/nesv/cqlmm/cmd/cqlmm
 
 clean:
