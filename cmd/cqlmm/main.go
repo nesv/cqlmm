@@ -40,6 +40,8 @@ func main() {
 		keyspace = &config.Keyspace
 	}
 
+	// TODO Connect to the database.
+
 	// Take the first, remaining argument as the subcommand to invoke.
 	switch cmd := flag.Arg(0); cmd {
 	case "up":
