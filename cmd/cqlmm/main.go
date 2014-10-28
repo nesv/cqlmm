@@ -43,9 +43,15 @@ func main() {
 	// Take the first, remaining argument as the subcommand to invoke.
 	switch cmd := flag.Arg(0); cmd {
 	case "up":
-		fmt.Println("--- Upgrading keyspace", *keyspace)
+		if err := cqlmm.Upgrade("", *migrationDir); err != nil {
+			log.Fatalln(err)
+		}
+
 	case "down":
-		fmt.Println("--- Downgrading keyspace", *keyspace)
+		if err := cqlmm.Downgrade("", *migrationDir); err != nil {
+			log.Fatalln(err)
+		}
+
 	case "create":
 		name := flag.Arg(1)
 		if name == "" {
