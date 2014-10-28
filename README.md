@@ -89,7 +89,7 @@ CQL supports three different comment notations:
 
 *	`--` at the beginning of a line
 *	`//` at the beginning of a line
-*	`/* ... */` is for multi-line commaents, where the opening `/*` is at 
+*	`/* ... */` is for multi-line comments, where the opening `/*` is at 
 	the beginning of a line
 
 cqlmm only supports the `--` notation, for now.
@@ -97,6 +97,9 @@ cqlmm only supports the `--` notation, for now.
 When cqlmm parses the `.cql` files in the `db/migrations` directory, it skips
 any comment lines (lines that begin with `--`), and does not send them to the
 server.
+
+For more information about comments in the CQL syntax, please refer to the 
+[documentation](https://cassandra.apache.org/doc/cql3/CQL.html#Comments).
 
 Upgrading the schema
 --------------------
