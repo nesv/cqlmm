@@ -64,6 +64,14 @@ func parseStatements(r io.Reader) (map[Direction][]string, error) {
 			continue
 		}
 
+		// Skip blank lines.
+		if ln == "" {
+			continue
+		}
+
+		// Write the current line to the buffer, and re-add the newline
+		// that was stripped by the earlier call to
+		// strings.TrimSpace().
 		_, err := buf.WriteString(ln + "\n")
 		if err != nil {
 			return nil, fmt.Errorf("cqlmm: %v", err)
@@ -72,7 +80,7 @@ func parseStatements(r io.Reader) (map[Direction][]string, error) {
 		// Check to see if the current line ends with a semi-colon. If
 		// it does, then dump the buffer, and append it to the list of
 		// statements for this section.
-		if strings.HasSuffix(ln, ";\n") {
+		if strings.HasSuffix(ln, ";") {
 			stmt := buf.Bytes()
 			stmts[dir] = append(stmts[dir], string(stmt))
 			buf.Reset()
