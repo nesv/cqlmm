@@ -1,10 +1,7 @@
 package cqlmm
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,86 +19,6 @@ const (
 	Down
 )
 
-func parseStatements(r io.Reader) (map[Direction][]string, error) {
-	var buf bytes.Buffer
-	scanner := bufio.NewScanner(r)
-	stmts := make(map[Direction][]string, 0)
-
-	upSections, downSections := 0, 0
-	var dir Direction
-	for scanner.Scan() {
-		ln := scanner.Text()
-
-		if strings.HasPrefix(ln, cqlmmSectionPrefix) {
-			section := strings.TrimSpace(ln[len(cqlmmSectionPrefix):])
-			switch section {
-			case "up":
-				if upSections > 0 {
-					return nil, fmt.Errorf("cqlmm: too many up sections in migration")
-				}
-				upSections++
-				dir = Up
-
-			case "down":
-				if downSections > 0 {
-					return nil, fmt.Errorf("cqlmm: too many down sections in migration")
-				}
-				downSections++
-				dir = Down
-
-			default:
-				return nil, fmt.Errorf("cqlmm: bad section name %q", section)
-			}
-			continue
-		}
-
-		if _, ok := stmts[dir]; !ok {
-			stmts[dir] = make([]string, 0)
-		}
-
-		if strings.HasPrefix(ln, "--") {
-			// Ignore comments.
-			continue
-		}
-
-		// Skip blank lines.
-		if ln == "" {
-			continue
-		}
-
-		// Write the current line to the buffer, and re-add the newline
-		// that was stripped by the earlier call to
-		// strings.TrimSpace().
-		_, err := buf.WriteString(ln + "\n")
-		if err != nil {
-			return nil, fmt.Errorf("cqlmm: %v", err)
-		}
-
-		// Check to see if the current line ends with a semi-colon. If
-		// it does, then dump the buffer, and append it to the list of
-		// statements for this section.
-		if strings.HasSuffix(ln, ";") {
-			stmt := buf.Bytes()
-			stmts[dir] = append(stmts[dir], string(stmt))
-			buf.Reset()
-		}
-	}
-
-	if upSections == 0 {
-		return nil, fmt.Errorf("cqlmm: no up section in migration file")
-	}
-
-	if downSections == 0 {
-		return nil, fmt.Errorf("cqlmm: no down section in migration file")
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("cqlmm: %v", err)
-	}
-
-	return stmts, nil
-}
-
 type MigrationState uint8
 
 const (
@@ -118,10 +35,10 @@ type Migration struct {
 	Source   string
 	State    MigrationState
 
-	stmts map[Direction][]string
+	stmts map[Direction][]Stmt
 }
 
-func (m *Migration) Stmts(d Direction) []string {
+func (m *Migration) Stmts(d Direction) []Stmt {
 	return m.stmts[d]
 }
 
@@ -198,13 +115,31 @@ func LoadMigrations(basedir string) ([]*Migration, error) {
 }
 
 func RunMigrations(m []*Migration, d Direction) error {
-	if len(m) == 1 {
-		log.Printf("applying migration %d", m[0].Version)
-	} else if len(m) > 1 {
-		log.Printf("applying migrations %d..%d", m[0].Version, m[len(m)-1].Version)
-	}
+	switch d {
+	case Up:
+		if len(m) == 1 {
+			log.Printf("applying migration %d", m[0].Version)
+		} else if len(m) > 1 {
+			log.Printf("applying migrations %d..%d", m[0].Version, m[len(m)-1].Version)
+		}
 
-	for _, migration := range m {
+		for _, migration := range m {
+			log.Printf("%d\t%s", migration.Version, migration.Name)
+			for i, stmt := range migration.Stmts(d) {
+				log.Printf("\t%d\t%s", i, stmt)
+			}
+		}
+
+	case Down:
+		// TODO
+		// This just naively pulls the latest migration script off of
+		// the pile, and runs its "down" section.
+		//
+		// What it *should* do is hit the database, and see which was
+		// the most-recent migration that was applied, then run the
+		// "down" section from that migration.
+		migration := m[len(m)-1]
+		log.Printf("rolling back migration %d", migration.Version)
 		log.Printf("%d\t%s", migration.Version, migration.Name)
 		for i, stmt := range migration.Stmts(d) {
 			log.Printf("\t%d\t%s", i, stmt)
