@@ -1,0 +1,146 @@
+.\" Process this file with groff -man -Tascii cqlmm.1
+.TH cqlmm 1 "November 2014" "Version 0.1.x"
+.SH NAME cqlmm \- Cassandra schema migrations manager
+.SH SYNOPSIS
+.\" The init command
+.\"
+.B cqlmm 
+[\fB\-c\fR \fICONFIG_DIR\fR] init
+.PP
+.\" The create command
+.\"
+.B cqlmm
+[\fB\-c\fR \fICONFIG_DIR\fR]
+[\fB\-k\fR \fIKEYSPACE\fR]
+create
+.I MIGRATION_NAME
+cql
+.PP
+.\" The up command
+.\"
+.B cqlmm
+[\fB\-c\fR \fICONFIG_DIR\fR]
+[\fB\-k\fR \fIKEYSPACE\fR]
+up
+.PP
+.\" The down command
+.\"
+.B cqlmm
+[\fB\-c\fR \fICONFIG_DIR\fR]
+[\fB\-k\fR \fIKEYSPACE\fR]
+down
+.\"
+.\" The DESCRIPTION section
+.\"
+.SH DESCRIPTION
+.B cqlmm
+is a tool to help you manage schema migrations for your Cassandra database.
+.PP
+Currently, \fBcqlmm\fR only supports writing schema migrations in CQL, but
+support for writing migrations in the Go programming language is planned for
+the future.
+.PP
+When
+.B cqlmm
+runs, it will check to see if the following column family/tables exist. Should
+any of them not exist, 
+.B cqlmm
+will create them:
+.RS
+cqlmm_migrations
+cqlmm_statements
+.RE
+.SS INITIALIZING THE MIGRATION ENVIRONMENT
+To initialize the directory structure
+.B cqlmm
+expects, run:
+.RS
+$ cqlmm init
+.RE
+.SS CREATING A NEW MIGRATION
+After your migration environment has been initialized, you can create a new
+migration using by running:
+.RS
+$ cqlmm create MIGRATION_NAME cql
+.RE
+.SS RUNNING YOUR MIGRATIONS
+Simply enough, all you need to run is:
+.RS
+$ cqlmm up
+.RE
+At this point, all statements that have not yet been applied to the keyspace,
+will be.
+.SS DOWNGRADING YOUR SCHEMA
+To roll your migrations back (i.e. "downgrade") them, you just need to run:
+.RS
+$ cqlmm down
+.RE
+Unlike the
+.I up
+subcommand, downgrading only rolls back the statements in one migration, at a
+time.
+.SS MIGRATION LOGS
+When
+.B cqlmm
+loads the migrations, it breaks them down into the individual statements within
+the migration section. This is because Cassandra does not provide SQL-like 
+transactions that can be easily rolled back. While this is not considered a 
+"downfall" of Cassandra, it just means that some form of enumeration needs to
+take place to ensure that statements are run in order.
+.\"
+.\" The OPTIONS section
+.\"
+.SH OPTIONS
+.\"
+.\" The -c flag
+.\"
+.IP "-c CONFIG_DIR"
+Override the directory
+.B cqlmm
+looks at to load
+.IR cqlmm.json
+and the migrations from. By default,
+.B cqlmm
+will look for the file in the
+.IR db
+directory, in the current working directory.
+.\"
+.\" The -k flag
+.\"
+.IP "-k KEYSPACE"
+Change the keyspace
+.B cqlmm
+uses for applying migrations, and storing migration logs, to. There is no
+default value for this option, and instead relies on the 
+.IR keyspace
+option being set in
+.IR CONFIG_DIR/cqlmm.json
+.\"
+.\" The FILES section
+.\"
+.SH FILES
+.IP CONFIG_DIR/cqlmm.json
+Holds the configuration for
+.B cqlmm
+formatted in JSON.
+.IP CONFIG_DIR/migrations
+The directory where migration scripts will be created in, and loaded from.
+.\"
+.\" The BUGS section
+.\"
+.SH BUGS
+Hopefully, there are no bugs, but if you do find one, please create an issue
+on the project's GitHub page:
+.RS
+https://github.com/nesv/cqlmm/issues/new
+.RE
+.\"
+.\" The AUTHOR section
+.\"
+.SH AUTHOR
+Nick Saika <nicksaika@gmail.com>
+.\"
+.\" The SEE ALSO section
+.\"
+.SH "SEE ALSO"
+.BR https://github.com/nesv/cqlmm
